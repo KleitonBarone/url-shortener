@@ -1,15 +1,15 @@
-import { beforeAll, beforeEach, afterAll } from 'vitest'
-import type { ServerType } from '@hono/node-server'
-import { prisma } from '../src/lib/prisma.js'
-import { startServer } from '../src/index.js'
+import type { ServerType } from "@hono/node-server";
+import { afterAll, beforeAll, beforeEach } from "vitest";
+import { startServer } from "../src/index.js";
+import { prisma } from "../src/lib/prisma.js";
 
 /**
  * Test server configuration
  */
-export const TEST_PORT = 3001
-export const TEST_BASE_URL = `http://localhost:${TEST_PORT}`
+export const TEST_PORT = 3001;
+export const TEST_BASE_URL = `http://localhost:${TEST_PORT}`;
 
-let server: ServerType
+let server: ServerType;
 
 /**
  * Global test setup
@@ -19,15 +19,15 @@ let server: ServerType
  */
 
 beforeAll(async () => {
-    server = startServer(TEST_PORT)
-})
+    server = startServer(TEST_PORT);
+});
 
 beforeEach(async () => {
-    await prisma.shortUrl.deleteMany()
-})
+    await prisma.shortUrl.deleteMany();
+});
 
 afterAll(async () => {
-    server.close()
-    await prisma.shortUrl.deleteMany()
-    await prisma.$disconnect()
-})
+    server.close();
+    await prisma.shortUrl.deleteMany();
+    await prisma.$disconnect();
+});

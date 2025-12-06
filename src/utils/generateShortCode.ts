@@ -2,12 +2,13 @@
  * Character set for generating short codes.
  * Includes uppercase, lowercase letters, and digits.
  */
-const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+const CHARSET =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 /**
  * Default length for generated short codes.
  */
-const DEFAULT_LENGTH = 6
+const DEFAULT_LENGTH = 6;
 
 /**
  * Generates a random alphanumeric short code.
@@ -22,9 +23,9 @@ const DEFAULT_LENGTH = 6
  * ```
  */
 export function generateShortCode(length: number = DEFAULT_LENGTH): string {
-    let result = ''
+    let result = "";
     for (let i = 0; i < length; i++) {
-        result += CHARSET.charAt(Math.floor(Math.random() * CHARSET.length))
+        result += CHARSET.charAt(Math.floor(Math.random() * CHARSET.length));
     }
-    return result
+    return result;
 }

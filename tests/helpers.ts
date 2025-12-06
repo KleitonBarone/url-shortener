@@ -1,8 +1,8 @@
-import { TEST_BASE_URL } from './setup.js'
-import type { ShortenResponse, ErrorResponse } from '../src/types/index.js'
+import type { ErrorResponse, ShortenResponse } from "../src/types/index.js";
+import { TEST_BASE_URL } from "./setup.js";
 
 // Re-export for test convenience
-export type { ShortenResponse, ErrorResponse }
+export type { ShortenResponse, ErrorResponse };
 
 /**
  * Creates a shortened URL via the API
@@ -11,12 +11,12 @@ export type { ShortenResponse, ErrorResponse }
  */
 export async function createShortUrl(url: string): Promise<Response> {
     return fetch(`${TEST_BASE_URL}/shorten`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         },
         body: JSON.stringify({ url }),
-    })
+    });
 }
 
 /**
@@ -24,9 +24,11 @@ export async function createShortUrl(url: string): Promise<Response> {
  * @param url - The original URL to shorten
  * @returns The parsed response with shortUrl and shortCode
  */
-export async function createShortUrlAndParse(url: string): Promise<ShortenResponse> {
-    const res = await createShortUrl(url)
-    return res.json()
+export async function createShortUrlAndParse(
+    url: string,
+): Promise<ShortenResponse> {
+    const res = await createShortUrl(url);
+    return res.json();
 }
 
 /**
@@ -36,8 +38,8 @@ export async function createShortUrlAndParse(url: string): Promise<ShortenRespon
  */
 export async function accessShortUrl(shortCode: string): Promise<Response> {
     return fetch(`${TEST_BASE_URL}/${shortCode}`, {
-        redirect: 'manual', // Don't follow redirects
-    })
+        redirect: "manual", // Don't follow redirects
+    });
 }
 
 /**
@@ -45,14 +47,16 @@ export async function accessShortUrl(shortCode: string): Promise<Response> {
  * @param body - The request body object
  * @returns The fetch Response
  */
-export async function postShorten(body: Record<string, unknown>): Promise<Response> {
+export async function postShorten(
+    body: Record<string, unknown>,
+): Promise<Response> {
     return fetch(`${TEST_BASE_URL}/shorten`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
-    })
+    });
 }
 
 /**
@@ -60,5 +64,5 @@ export async function postShorten(body: Record<string, unknown>): Promise<Respon
  * @param ms - Milliseconds to wait (default: 100)
  */
 export function delay(ms: number = 100): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }

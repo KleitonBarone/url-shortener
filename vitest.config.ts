@@ -1,16 +1,16 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
     test: {
         fileParallelism: false,
-        setupFiles: ['./tests/setup.ts'],
+        setupFiles: ["./tests/setup.ts"],
         testTimeout: 10000,
-        include: ['tests/**/*.test.ts'],
+        include: ["tests/**/*.test.ts"],
         sequence: {
-            hooks: 'stack',
+            hooks: "stack",
         },
     },
     define: {
-        'process.env.NODE_ENV': '"test"',
+        "process.env.NODE_ENV": '"test"',
     },
-})
+});

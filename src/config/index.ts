@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import "dotenv/config";
 
 /**
  * Application configuration.
@@ -14,10 +14,10 @@ export const config = {
     /**
      * Default protocol when X-Forwarded-Proto header is not present.
      */
-    defaultProtocol: 'http',
+    defaultProtocol: "http",
 
     /**
      * Default host when Host header is not present.
      */
-    defaultHost: 'localhost:3000',
-} as const
+    defaultHost: "localhost:3000",
+} as const;
