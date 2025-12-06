@@ -28,5 +28,6 @@ beforeEach(async () => {
 
 afterAll(async () => {
     server.close()
+    await prisma.shortUrl.deleteMany()
     await prisma.$disconnect()
 })
