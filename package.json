@@ -3,14 +3,19 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "postinstall": "prisma generate --config ./prisma.config.ts",
+        "postinstall": "npm run db:generate",
         "dev": "tsx watch src/index.ts",
         "build": "tsc",
         "start": "node dist/index.js",
         "test": "vitest run",
         "test:watch": "vitest",
         "lint": "biome check .",
-        "lint:fix": "biome check --write ."
+        "lint:fix": "biome check --write .",
+        "db:generate": "prisma generate --config ./prisma.config.ts",
+        "db:migrate": "prisma migrate dev --config ./prisma.config.ts",
+        "db:push": "prisma db push --config ./prisma.config.ts",
+        "db:reset": "prisma migrate reset --config ./prisma.config.ts",
+        "db:studio": "prisma studio --config ./prisma.config.ts"
     },
     "dependencies": {
         "@hono/node-server": "^1.19.6",
