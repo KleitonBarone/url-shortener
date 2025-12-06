@@ -3,6 +3,7 @@
  */
 export interface ShortenRequest {
     url: string;
+    ttl?: number; // TTL in seconds (optional)
 }
 
 /**
@@ -11,6 +12,7 @@ export interface ShortenRequest {
 export interface ShortenResponse {
     shortUrl: string;
     shortCode: string;
+    expiresAt?: string; // ISO 8601 timestamp if TTL was set
 }
 
 /**

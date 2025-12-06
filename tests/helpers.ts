@@ -7,27 +7,37 @@ export type { ShortenResponse, ErrorResponse };
 /**
  * Creates a shortened URL via the API
  * @param url - The original URL to shorten
+ * @param ttl - Optional TTL in seconds
  * @returns The fetch Response
  */
-export async function createShortUrl(url: string): Promise<Response> {
+export async function createShortUrl(
+    url: string,
+    ttl?: number,
+): Promise<Response> {
+    const body: Record<string, unknown> = { url };
+    if (ttl !== undefined) {
+        body.ttl = ttl;
+    }
     return fetch(`${TEST_BASE_URL}/shorten`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify(body),
     });
 }
 
 /**
  * Creates a shortened URL and returns the parsed response
  * @param url - The original URL to shorten
- * @returns The parsed response with shortUrl and shortCode
+ * @param ttl - Optional TTL in seconds
+ * @returns The parsed response with shortUrl, shortCode, and optional expiresAt
  */
 export async function createShortUrlAndParse(
     url: string,
+    ttl?: number,
 ): Promise<ShortenResponse> {
-    const res = await createShortUrl(url);
+    const res = await createShortUrl(url, ttl);
     return res.json();
 }
 

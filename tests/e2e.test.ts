@@ -85,4 +85,70 @@ describe("URL Shortener E2E", () => {
             expect(record?.visits).toBe(3);
         });
     });
+
+    describe("TTL (Time to Live)", () => {
+        it("should return expiresAt when TTL is provided", async () => {
+            const res = await createShortUrl(`${TEST_BASE_URL}/ttl-test`, 3600);
+
+            expect(res.status).toBe(200);
+            const body = (await res.json()) as ShortenResponse;
+            expect(body).toHaveProperty("expiresAt");
+            expect(body.expiresAt).toBeDefined();
+
+            // Verify expiresAt is approximately 1 hour from now
+            const expiresAt = new Date(body.expiresAt ?? "");
+            const expectedExpiry = new Date(Date.now() + 3600 * 1000);
+            const diffMs = Math.abs(
+                expiresAt.getTime() - expectedExpiry.getTime(),
+            );
+            expect(diffMs).toBeLessThan(5000); // Within 5 seconds
+        });
+
+        it("should not return expiresAt when TTL is not provided", async () => {
+            const body = await createShortUrlAndParse(
+                `${TEST_BASE_URL}/no-ttl`,
+            );
+
+            expect(body.expiresAt).toBeUndefined();
+        });
+
+        it("should return 404 for expired URL", async () => {
+            // Create URL with 1 second TTL
+            const { shortCode } = await createShortUrlAndParse(
+                `${TEST_BASE_URL}/expire-test`,
+                1,
+            );
+
+            // Access immediately - should work
+            const res1 = await accessShortUrl(shortCode);
+            expect(res1.status).toBe(302);
+
+            // Wait for expiration
+            await delay(1500);
+
+            // Access after expiration - should return 404
+            const res2 = await accessShortUrl(shortCode);
+            expect(res2.status).toBe(404);
+        });
+
+        it("should reject invalid TTL values", async () => {
+            const res1 = await postShorten({
+                url: `${TEST_BASE_URL}/test`,
+                ttl: -1,
+            });
+            expect(res1.status).toBe(400);
+
+            const res2 = await postShorten({
+                url: `${TEST_BASE_URL}/test`,
+                ttl: 0,
+            });
+            expect(res2.status).toBe(400);
+
+            const res3 = await postShorten({
+                url: `${TEST_BASE_URL}/test`,
+                ttl: "invalid",
+            });
+            expect(res3.status).toBe(400);
+        });
+    });
 });

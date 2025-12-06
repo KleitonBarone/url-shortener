@@ -9,7 +9,7 @@ const redirectRoute = new Hono();
  *
  * @param shortCode - The short code to look up
  * @returns 302 redirect to original URL
- * @returns 404 if short code not found
+ * @returns 404 if short code not found or expired
  */
 redirectRoute.get("/:shortCode", async (c) => {
     const shortCode = c.req.param("shortCode");
@@ -18,7 +18,12 @@ redirectRoute.get("/:shortCode", async (c) => {
         where: { shortCode },
     });
 
+    // Return 404 if not found or expired (security: don't reveal expired URLs existed)
     if (!shortUrl) {
+        return c.notFound();
+    }
+
+    if (shortUrl.expiresAt && new Date() > shortUrl.expiresAt) {
         return c.notFound();
     }
 

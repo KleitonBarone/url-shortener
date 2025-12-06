@@ -14,13 +14,13 @@ const shortenRoute = new Hono();
  * POST /shorten
  * Creates a shortened URL from a valid original URL.
  *
- * @body {ShortenRequest} - JSON body with `url` field
- * @returns {ShortenResponse} - The generated short URL and code
+ * @body {ShortenRequest} - JSON body with `url` field and optional `ttl` (seconds)
+ * @returns {ShortenResponse} - The generated short URL, code, and optional expiration
  * @returns {ErrorResponse} - Error message if URL is invalid or missing
  */
 shortenRoute.post("/", async (c) => {
     const body = await c.req.json<ShortenRequest>();
-    const { url } = body;
+    const { url, ttl } = body;
 
     if (!url) {
         return c.json<ErrorResponse>({ error: "URL is required" }, 400);
@@ -32,6 +32,17 @@ shortenRoute.post("/", async (c) => {
     } catch {
         return c.json<ErrorResponse>({ error: "Invalid URL format" }, 400);
     }
+
+    // Validate TTL if provided
+    if (ttl !== undefined && (typeof ttl !== "number" || ttl <= 0)) {
+        return c.json<ErrorResponse>(
+            { error: "TTL must be a positive number (seconds)" },
+            400,
+        );
+    }
+
+    // Calculate expiration date if TTL is provided
+    const expiresAt = ttl ? new Date(Date.now() + ttl * 1000) : null;
 
     // Generate unique short code with collision handling
     let shortCode = generateShortCode();
@@ -46,6 +57,7 @@ shortenRoute.post("/", async (c) => {
         data: {
             originalUrl: url,
             shortCode,
+            expiresAt,
         },
     });
 
@@ -55,7 +67,16 @@ shortenRoute.post("/", async (c) => {
     const host = c.req.header("host") || config.defaultHost;
     const fullShortUrl = `${protocol}://${host}/${shortCode}`;
 
-    return c.json<ShortenResponse>({ shortUrl: fullShortUrl, shortCode });
+    const response: ShortenResponse = {
+        shortUrl: fullShortUrl,
+        shortCode,
+    };
+
+    if (expiresAt) {
+        response.expiresAt = expiresAt.toISOString();
+    }
+
+    return c.json<ShortenResponse>(response);
 });
 
 export { shortenRoute };
