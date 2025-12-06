@@ -7,6 +7,8 @@ const CHARSET =
 
 /**
  * Default length for generated short codes.
+ *
+ * With 62 characters and length 6: 62^6 = 56,800,235,584 possible combinations (~56.8 billion unique URLs)
  */
 const DEFAULT_LENGTH = 6;
 
