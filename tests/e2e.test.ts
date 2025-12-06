@@ -1,20 +1,23 @@
 import { describe, it, expect } from 'vitest'
 import { prisma } from '../src/lib/prisma.js'
+import { TEST_BASE_URL } from './setup.js'
 import {
     createShortUrl,
     createShortUrlAndParse,
     accessShortUrl,
     postShorten,
-    type CreateShortUrlResponse,
+    delay,
+    type ShortenResponse,
 } from './helpers.js'
 
 describe('URL Shortener E2E', () => {
     describe('POST /shorten', () => {
         it('should shorten a valid URL', async () => {
-            const res = await createShortUrl('https://example.com')
+            // Use internal URL - the shortened URL will point back to our test server
+            const res = await createShortUrl(`${TEST_BASE_URL}/test-page`)
 
             expect(res.status).toBe(200)
-            const body = (await res.json()) as CreateShortUrlResponse
+            const body = (await res.json()) as ShortenResponse
             expect(body).toHaveProperty('shortCode')
             expect(body).toHaveProperty('shortUrl')
             expect(body.shortUrl).toContain(body.shortCode)
@@ -37,8 +40,8 @@ describe('URL Shortener E2E', () => {
         })
 
         it('should generate unique short codes', async () => {
-            const res1 = await createShortUrlAndParse('https://example.com/page1')
-            const res2 = await createShortUrlAndParse('https://example.com/page2')
+            const res1 = await createShortUrlAndParse(`${TEST_BASE_URL}/page1`)
+            const res2 = await createShortUrlAndParse(`${TEST_BASE_URL}/page2`)
 
             expect(res1.shortCode).not.toBe(res2.shortCode)
         })
@@ -46,12 +49,13 @@ describe('URL Shortener E2E', () => {
 
     describe('GET /:shortCode', () => {
         it('should redirect to original URL', async () => {
-            const { shortCode } = await createShortUrlAndParse('https://google.com')
+            const targetUrl = `${TEST_BASE_URL}/target-page`
+            const { shortCode } = await createShortUrlAndParse(targetUrl)
 
             const res = await accessShortUrl(shortCode)
 
             expect(res.status).toBe(302)
-            expect(res.headers.get('location')).toBe('https://google.com')
+            expect(res.headers.get('location')).toBe(targetUrl)
         })
 
         it('should return 404 for unknown code', async () => {
@@ -61,28 +65,15 @@ describe('URL Shortener E2E', () => {
         })
 
         it('should increment visit count', async () => {
-            const { shortCode } = await createShortUrlAndParse('https://example.com')
+            const { shortCode } = await createShortUrlAndParse(`${TEST_BASE_URL}/visit-test`)
 
-            // Create a context that tracks promises for this test
-            const promises: Promise<unknown>[] = []
-            // biome-ignore lint/suspicious/noExplicitAny: Test mock needs flexible typing
-            const trackingContext = {
-                waitUntil: (promise: Promise<unknown>) => {
-                    promises.push(promise)
-                },
-                passThroughOnException: () => { },
-            } as any
+            // Access the URL multiple times
+            await accessShortUrl(shortCode)
+            await accessShortUrl(shortCode)
+            await accessShortUrl(shortCode)
 
-            // Import app directly to use tracking context
-            const app = (await import('../src/index.js')).default
-
-            // Access the URL multiple times with tracking context
-            await app.request(`/${shortCode}`, {}, undefined, trackingContext)
-            await app.request(`/${shortCode}`, {}, undefined, trackingContext)
-            await app.request(`/${shortCode}`, {}, undefined, trackingContext)
-
-            // Wait for all async visit updates to complete
-            await Promise.all(promises)
+            // Wait for async visit updates to complete
+            await delay(100)
 
             const record = await prisma.shortUrl.findUnique({
                 where: { shortCode },

@@ -22,13 +22,15 @@ redirectRoute.get('/:shortCode', async (c) => {
         return c.notFound()
     }
 
-    // Increment visits asynchronously without blocking the redirect
-    c.executionCtx.waitUntil(
-        prisma.shortUrl.update({
+    // Increment visits asynchronously (fire-and-forget)
+    prisma.shortUrl
+        .update({
             where: { id: shortUrl.id },
             data: { visits: { increment: 1 } },
         })
-    )
+        .catch(() => {
+            // Silently ignore errors in background update
+        })
 
     return c.redirect(shortUrl.originalUrl)
 })

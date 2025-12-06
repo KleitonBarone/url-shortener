@@ -10,4 +10,7 @@ export default defineConfig({
             hooks: 'stack',
         },
     },
+    define: {
+        'process.env.NODE_ENV': '"test"',
+    },
 })

@@ -1,37 +1,16 @@
-import app from '../src/index.js'
+import { TEST_BASE_URL } from './setup.js'
+import type { ShortenResponse, ErrorResponse } from '../src/types/index.js'
 
-/**
- * Response type for creating a short URL
- */
-export interface CreateShortUrlResponse {
-    shortUrl: string
-    shortCode: string
-}
-
-/**
- * Response type for error responses
- */
-export interface ErrorResponse {
-    error: string
-}
-
-/**
- * Mock execution context for Hono tests that use waitUntil.
- * Uses 'as any' since we're only implementing the methods we need for testing.
- */
-// biome-ignore lint/suspicious/noExplicitAny: Test mock needs flexible typing
-export const mockExecutionContext = {
-    waitUntil: (promise: Promise<unknown>) => promise,
-    passThroughOnException: () => { },
-} as any
+// Re-export for test convenience
+export type { ShortenResponse, ErrorResponse }
 
 /**
  * Creates a shortened URL via the API
  * @param url - The original URL to shorten
- * @returns The API response
+ * @returns The fetch Response
  */
 export async function createShortUrl(url: string): Promise<Response> {
-    return app.request('/shorten', {
+    return fetch(`${TEST_BASE_URL}/shorten`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -45,31 +24,41 @@ export async function createShortUrl(url: string): Promise<Response> {
  * @param url - The original URL to shorten
  * @returns The parsed response with shortUrl and shortCode
  */
-export async function createShortUrlAndParse(url: string): Promise<CreateShortUrlResponse> {
+export async function createShortUrlAndParse(url: string): Promise<ShortenResponse> {
     const res = await createShortUrl(url)
     return res.json()
 }
 
 /**
- * Accesses a short URL to trigger redirect
+ * Accesses a short URL to trigger redirect (without following)
  * @param shortCode - The short code to access
- * @returns The API response
+ * @returns The fetch Response
  */
 export async function accessShortUrl(shortCode: string): Promise<Response> {
-    return app.request(`/${shortCode}`, {}, undefined, mockExecutionContext)
+    return fetch(`${TEST_BASE_URL}/${shortCode}`, {
+        redirect: 'manual', // Don't follow redirects
+    })
 }
 
 /**
  * Makes a POST request to /shorten with a custom body
  * @param body - The request body object
- * @returns The API response
+ * @returns The fetch Response
  */
 export async function postShorten(body: Record<string, unknown>): Promise<Response> {
-    return app.request('/shorten', {
+    return fetch(`${TEST_BASE_URL}/shorten`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
     })
+}
+
+/**
+ * Small delay to allow async operations to complete
+ * @param ms - Milliseconds to wait (default: 100)
+ */
+export function delay(ms: number = 100): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms))
 }
